@@ -7,8 +7,8 @@ modul 1 - inisialisasi dan pengerjaan project local dan langsung di upload ke gi
 modul 2 - eksperimen menggunakan git version control untuk manage project
 
 Modul 1
-![ss1](ss1.png)
-![ss2](ss2.png)
-![ss2](ss2.png)
+![ss1](ss1.PNG)
+![ss2](ss2.PNG)
+![ss2](ss3.PNG)
 
 Modul 2
