@@ -17,3 +17,4 @@
 
 ### Modul 2
 ![ss4](ss4.PNG)
+![ss5](ss5.PNG)
