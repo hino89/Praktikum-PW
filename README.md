@@ -5,6 +5,7 @@
 ### Currently 2 modul
 -  **Modul 1 :** inisialisasi dan pengerjaan project local dan langsung di upload ke github via website interface.
 -  **Modul 2 :** eksperimen menggunakan git version control untuk manage project.
+-  **Modul 3 :** eksperimen menggunakan tailwindcss framework
 
 <hr>
 
@@ -16,5 +17,11 @@
 <hr>
 
 ### Modul 2
+![ss4](ss4.PNG)
+![ss5](ss5.PNG)
+
+<hr>
+
+### Modul 3
 ![ss4](ss4.PNG)
 ![ss5](ss5.PNG)

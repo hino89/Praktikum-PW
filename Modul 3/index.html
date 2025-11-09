@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KGCC - Pioneer Project</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@700;900&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style type="text/tailwindcss">
+        @layer base {
+            :root {
+                --color-lt-green: #5C7F71;
+                --color-lt-red: #802520;
+                --color-lt-gold: #BA8530;
+                --color-lt-black: #181818;
+                --color-lt-cream: #F5EDDC;
+                --color-lt-rust: #B2653B;
+            }
+            html {
+                @apply bg-lt-black text-lt-cream font-inter;
+                scroll-behavior: smooth;
+            }
+            body {
+                @apply flex overflow-hidden;
+            }
+        }
+    </style>
+    
+    <script>
+        // Konfigurasi Tailwind untuk menggunakan warna & font kustom
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'lt-green': 'var(--color-lt-green)',
+                        'lt-red': 'var(--color-lt-red)',
+                        'lt-gold': 'var(--color-lt-gold)',
+                        'lt-black': 'var(--color-lt-black)',
+                        'lt-cream': 'var(--color-lt-cream)',
+                        'lt-rust': 'var(--color-lt-rust)',
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                        'titillium': ['"Titillium Web"', 'sans-serif'],
+                    },
+                    textShadow: {
+                        '3d-red': '8px 6px 0px var(--color-lt-red), 12px 9px 0px rgba(0,0,0,0.2)',
+                        '3d-red-sm': '3px 2px 0px var(--color-lt-red), 6px 4px 0px rgba(0,0,0,0.2)',
+                    },
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Blinking cursor */
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        .blink-cursor {
+            animation: blink 1s infinite;
+            margin-left: 2px;
+            color: #5c7f71; 
+            font-weight: 700;
+        }
+
+        /* Sidebar Nav Link Hover */
+        .sidebar-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0.5rem; 
+            left: 10%; 
+            width: 80%; 
+            height: 2px;
+            background: linear-gradient(to right, 
+                var(--color-lt-red) 33.3%, 
+                var(--color-lt-gold) 33.3% 66.6%, 
+                var(--color-lt-green) 66.6% 100%);
+            transform: scaleX(0); /* Hidden by default */
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1); 
+        }
+        .sidebar-link:hover::after {
+            transform: scaleX(1); /* Show on hover */
+        }
+
+        /* Section Corner Brackets */
+        .content-section {
+            position: relative;
+        }
+        .content-section::before,
+        .content-section::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-color: var(--color-lt-green); 
+            border-style: solid;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .content-section::before {
+            top: -4px;
+            left: -8px;
+            border-width: 2px 0 0 2px;
+        }
+        .content-section::after {
+            bottom: -4px;
+            right: -8px;
+            border-width: 0 2px 2px 0;
+        }
+
+        /* Section Title Tri-Color Bar */
+        .section-title {
+            position: relative;
+            padding-left: 18px;
+        }
+        .section-title::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%) skewX(5deg); 
+            width: 6px;
+            height: 2.5rem; 
+            background: linear-gradient(to bottom, 
+                var(--color-lt-red) 33.3%, 
+                var(--color-lt-gold) 33.3% 66.6%, 
+                var(--color-lt-green) 66.6% 100%);
+        }
+        
+        /* === TAMBAHAN: Solar System CSS === */
+        @keyframes orbit {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+        .solar-system {
+            position: absolute;
+            /* Disesuaikan agar di tengah hero section */
+            top: 50vh; 
+            left: 50%;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .orbit {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid #444444; /* Sesuai style asli */
+        }
+        .planet-rotator {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            animation: orbit linear infinite; 
+        }
+        .orbit:nth-child(1) { opacity: 0.9; }
+        .orbit:nth-child(2) { opacity: 0.8; }
+        .orbit:nth-child(3) { opacity: 0.7; }
+        .orbit:nth-child(4) { opacity: 0.6; }
+        .orbit:nth-child(5) { opacity: 0.5; }
+
+        .planet {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            margin-left: -4px; 
+            margin-top: -4px; 
+            background-color: var(--planet-color);
+            border-radius: 50%;
+            box-shadow: 0 0 10px 2px var(--planet-color); /* Efek glow */
+            transform: translateY(calc(var(--planet-radius) * -1));
+        }
+
+        /* Kecepatan planet dari style asli */
+        .solar-system .orbit:nth-child(1) .planet-rotator { animation-duration: 30s; animation-delay: -11.67s; }
+        .solar-system .orbit:nth-child(2) .planet-rotator { animation-duration: 50s; animation-delay: -1.39s; }
+        .solar-system .orbit:nth-child(3) .planet-rotator { animation-duration: 90s; animation-delay: -52.5s; }
+        .solar-system .orbit:nth-child(4) .planet-rotator { animation-duration: 150s; animation-delay: -116.67s; }
+        .solar-system .orbit:nth-child(5) .planet-rotator { animation-duration: 240s; animation-delay: -66.67s; }
+
+        /* GANTI ATURAN LAMA ANDA DENGAN YANG INI */
+        #sidebar::before {
+            content: '';
+            position: absolute;
+            inset: 0; 
+            background-image: url('halftone.png');
+            
+            background-repeat: no-repeat;
+            background-position: bottom;
+            transform: rotate(180deg) translateY(-32rem);
+            transform-origin: center;         
+            z-index: 0; 
+            overflow: hidden;
+        }
+
+    </style>
+</head>
+
+<body class="flex overflow-hidden h-screen">
+
+    <aside id="sidebar" 
+       class="w-64 h-full flex-shrink-0 border-r border-[#444444] bg-[#222222] p-6 box-border flex flex-col items-center gap-6 relative">
+           
+        <div class="relative z-10 w-full h-full flex flex-col items-center gap-6 overflow-y-auto">
+            
+            <div class="flex items-center gap-3 w-full">
+                <img src="logo_cool.webp" alt="KGCC Logo" class="w-12 h-12 object-contain flex-shrink-0">
+                <div class="font-titillium uppercase">
+                    <p class="text-sm font-bold text-lt-cream m-0 leading-none p-0 border-none">MAINTAINED BY</p>
+                    <span class="text-xs font-normal text-lt-cream/60 tracking-wider">KGCC</span>
+                </div>
+            </div>
+
+            <p class="font-titillium uppercase font-bold text-lt-green tracking-wider text-sm mt-2">
+                [ STATUS: <span class="text-lt-green/80">ONLINE</span><span class="blink-cursor">_</span> ]
+            </p>
+
+            <div class="w-4/5 flex flex-col gap-1 my-2">
+                <div class="h-1.5 w-full bg-lt-red"></div>
+                <div class="h-1.5 w-full bg-lt-gold"></div>
+                <div class="h-1.5 w-full bg-lt-green"></div>
+            </div>
+
+            <div class="w-full border-2 border-[#444444] bg-[#222222] p-4 box-border relative">
+                <div class="absolute top-1 left-1 w-4 h-4 border-t-2 border-l-2 border-lt-green/60"></div>
+                <div class="absolute bottom-1 right-1 w-4 h-4 border-b-2 border-r-2 border-lt-green/60"></div>
+
+                <p class="mt-0 font-bold text-center text-lt-cream font-titillium uppercase border-b-2 border-[#444444] pb-3 mb-3">
+                    List of Sections
+                </p>
+                <ul class="list-none p-0 m-0">
+                    <li class="w-full text-center mb-1">
+                        <a href="#home" class="sidebar-link block w-full py-3 text-lt-cream no-underline font-titillium uppercase font-bold tracking-wide relative pb-4 hover:bg-[#444444] transition-colors">
+                            Home
+                        </a>
+                    </li>
+                    <li class="w-full text-center mb-1">
+                        <a href="#features" class="sidebar-link block w-full py-3 text-lt-cream no-underline font-titillium uppercase font-bold tracking-wide relative pb-4 hover:bg-[#444444] transition-colors">
+                            Features
+                        </a>
+                    </li>
+                    <li class="w-full text-center mb-1">
+                        <a href="#about" class="sidebar-link block w-full py-3 text-lt-cream no-underline font-titillium uppercase font-bold tracking-wide relative pb-4 hover:bg-[#444444] transition-colors">
+                            About
+                        </a>
+                    </li>
+                    <li class="w-full text-center">
+                        <a href="#contact" class="sidebar-link block w-full py-3 text-lt-cream no-underline font-titillium uppercase font-bold tracking-wide relative pb-4 hover:bg-[#444444] transition-colors">
+                            Contact
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+        </div> 
+    </aside>
+
+    <main id="main-content" class="h-full flex-grow overflow-y-auto overflow-x-hidden relative" 
+          style="
+            background-image: 
+                linear-gradient(to right, rgba(68, 68, 68, 0.3) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(68, 68, 68, 0.3) 1px, transparent 1px),
+                linear-gradient(rgba(24, 24, 24, 0.9), rgba(24, 24, 24, 0.9)),
+                url('gaming.png'),
+                url('gaming2.png');
+            background-size: 
+                80px 80px, 80px 80px,
+                cover,
+                auto 100%,
+                auto 60%;
+            background-position: 
+                center center, center center,
+                center center,
+                top 0% left 30%,
+                bottom 0% right 0%;
+            background-repeat:
+                repeat, repeat,
+                no-repeat,
+                no-repeat,
+                no-repeat;
+            background-attachment: 
+                local, local,
+                fixed,
+                fixed,
+                fixed;
+          ">
+        
+        <div class="solar-system">
+            <div class="orbit" style="width: 200px; height: 200px; margin-top: -100px; margin-left: -100px;">
+                <div class="planet-rotator">
+                    <div class="planet" style="--planet-color: var(--color-lt-green); --planet-radius: 100px;"></div>
+                </div>
+            </div>
+            <div class="orbit" style="width: 320px; height: 320px; margin-top: -160px; margin-left: -160px;">
+                <div class="planet-rotator">
+                    <div class="planet" style="--planet-color: var(--color-lt-gold); --planet-radius: 160px;"></div>
+                </div>
+            </div>
+            <div class="orbit" style="width: 500px; height: 500px; margin-top: -250px; margin-left: -250px;">
+                <div class="planet-rotator">
+                    <div class="planet" style="--planet-color: var(--color-lt-red); --planet-radius: 250px;"></div>
+                </div>
+            </div>
+            <div class="orbit" style="width: 750px; height: 750px; margin-top: -375px; margin-left: -375px;">
+                <div class="planet-rotator">
+                    <div class="planet" style="--planet-color: var(--color-lt-green); --planet-radius: 375px;"></div>
+                </div>
+            </div>
+            <div class="orbit" style="width: 1100px; height: 1100px; margin-top: -550px; margin-left: -550px;">
+                <div class="planet-rotator">
+                    <div class="planet" style="--planet-color: var(--color-lt-gold); --planet-radius: 550px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col items-center">
+
+            <section id="home" class="w-full max-w-4xl min-h-[100vh] flex flex-col items-center justify-center text-center px-6 py-40 relative z-10">
+                <h1 class="text-6xl md:text-7xl font-titillium font-black uppercase text-lt-cream transform -skew-x-6" style="text-shadow: 8px 6px 0px var(--color-lt-red), 12px 9px 0px rgba(0,0,0,0.2);">
+                    KGCC Pioneer Project
+                </h1>
+                <p class="mt-8 text-xl text-lt-green font-titillium font-bold uppercase tracking-wider">
+                    Expanding terrestrial boundaries. Charting the unknown.
+                </p>
+                <a href="#features" class="mt-8 inline-block bg-lt-gold text-lt-black font-bold px-8 py-3 text-lg hover:bg-lt-green hover:text-lt-cream transition-all duration-300 transform hover:scale-105 font-titillium uppercase">
+                    Explore Our Mission
+                </a>
+            </section>
+
+            <section id="features" class="content-section w-full max-w-4xl mt-12 px-6 py-10 relative z-10">
+                <h2 class="section-title text-4xl font-titillium font-black uppercase text-lt-gold mb-12 transform -skew-x-6" style="text-shadow: 3px 2px 0px var(--color-lt-red), 6px 4px 0px rgba(0,0,0,0.2);">
+                    Core Initiatives
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    
+                    <div class="border border-[#444444] bg-[#282828] p-6 hover:shadow-lg transition-shadow relative">
+                        <img src="logo_cool2.webp" alt="Company Logo" class="h-24 w-24 object-contain opacity-50 hover:opacity-90 transition-opacity mx-auto">
+                        <h3 class="font-titillium font-bold uppercase text-2xl text-lt-gold mb-3 text-center">Interstellar</h3>
+                        <p class="text-lt-cream/80">Our flagship program, pushing the boundaries of known space and resource acquisition.</p>
+                    </div>
+                    
+                    <div class="border border-[#444444] bg-[#282828] p-6 hover:shadow-lg transition-shadow relative">
+                        <img src="Rhine_Lab.webp" alt="Company Logo" class="h-24 w-24 object-contain opacity-50 hover:opacity-90 transition-opacity mx-auto">
+                        <h3 class="font-titillium font-bold uppercase text-2xl text-lt-gold mb-3 text-center">Rhinelab Synergy</h3>
+                        <p class="text-lt-cream/80">Leveraging cutting-edge research from our partners at Rhinelab for terrestrial applications.</p>
+                    </div>
+
+                    <div class="border border-[#444444] bg-[#282828] p-6 hover:shadow-lg transition-shadow relative">
+                        <img src="Columbia.webp" alt="Company Logo" class="h-24 w-24 object-contain opacity-50 hover:opacity-90 transition-opacity mx-auto">
+                        <h3 class="font-titillium font-bold uppercase text-2xl text-lt-gold mb-3 text-center">Aegis Systems</h3>
+                        <p class="text-lt-cream/80">Advanced autonomous defense protocols for high-value assets, orbital and ground-based.</p>
+                    </div>
+
+                </div>
+            </section>
+            
+            <section id="about" class="content-section w-full max-w-4xl mt-24 px-6 py-10 relative z-10">
+                <h2 class="section-title text-4xl font-titillium font-black uppercase text-lt-gold mb-12 transform -skew-x-6" style="text-shadow: 3px 2px 0px var(--color-lt-red), 6px 4px 0px rgba(0,0,0,0.2);">
+                    About KGCC
+                </h2>
+                <div class="bg-[#282828] border border-[#444444] p-8">
+                    <p class="text-lg mb-4 text-lt-cream/80 leading-relaxed">
+                        Founded on the principles of innovation, KGCC (Karl-Gunther Cosmology Corporation) bridges the gap between theoretical science and practical application.
+                    </p>
+                    <p class="text-lg text-lt-cream/80 leading-relaxed">
+                        Inspired by the pioneering spirit of institutions like Rhinelab, we are dedicated to solving humanity's greatest challenges. Our projects range from sustainable energy solutions to the ambitious Pioneer Project, our effort to secure humanity's future among the stars.
+            </section>
+
+            <section id="contact" class="content-section w-full max-w-4xl mt-24 px-6 py-10 relative z-10">
+                <h2 class="section-title text-4xl font-titillium font-black uppercase text-lt-gold mb-12 transform -skew-x-6" style="text-shadow: 3px 2px 0px var(--color-lt-red), 6px 4px 0px rgba(0,0,0,0.2);">
+                    External Comms
+                </h2>
+                <form action="#" method="POST" class="space-y-6">
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-lt-cream/80 font-titillium uppercase">Full Name</label>
+                        <input type="text" id="name" name="name" class="mt-1 block w-full bg-[#222222] border border-[#444444] py-2 px-3 text-lt-cream focus:outline-none focus:ring-lt-gold focus:border-lt-gold transition-colors">
+                    </div>
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-lt-cream/80 font-titillium uppercase">Email Address</label>
+                        <input type="email" id="email" name="email" class="mt-1 block w-full bg-[#222222] border border-[#444444] py-2 px-3 text-lt-cream focus:outline-none focus:ring-lt-gold focus:border-lt-gold transition-colors">
+                    </div>
+                    <div>
+                        <label for="message" class="block text-sm font-medium text-lt-cream/80 font-titillium uppercase">Message</label>
+                        <textarea id="message" name="message" rows="4" class="mt-1 block w-full bg-[#222222] border border-[#444444] py-2 px-3 text-lt-cream focus:outline-none focus:ring-lt-gold focus:border-lt-gold transition-colors"></textarea>
+                    </div>
+                    <div>
+                        <button type="submit" class="w-full bg-lt-gold text-lt-black font-bold px-8 py-3 text-lg hover:bg-lt-green hover:text-lt-cream transition-all duration-300 transform hover:scale-105 font-titillium uppercase">
+                            Send Transmission
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <footer id="footer" class="w-full mt-32 p-10 bg-[#101010] text-lt-cream/60 text-sm box-border flex justify-between items-center flex-wrap gap-6 relative z-10">
+                <div class="flex items-stretch flex-wrap gap-8">
+                    <div class="flex items-center gap-3">
+                        <img src="logo_cool.webp" alt="Company Logo" class="h-10 w-10 object-contain opacity-50 hover:opacity-90 transition-opacity">
+                        <div class="font-titillium text-left">
+                            <span class="text-xs uppercase tracking-wider">A Property of</span>
+                            <p class="text-sm font-bold text-lt-cream uppercase m-0 leading-tight">KGCC</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <img src="logo_cool2.webp" alt="Project Logo" class="h-10 w-10 object-contain opacity-50 hover:opacity-90 transition-opacity">
+                        <div class="font-titillium text-left">
+                            <span class="text-xs uppercase tracking-wider">Project</span>
+                            <p class="text-sm font-bold text-lt-cream uppercase m-0 leading-tight">Pioneer Project</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="font-titillium text-right">
+                    <p class="uppercase text-lt-green tracking-wider">[System Status: Nominal] // [Interface: v2.5]</p>
+                    <p class="mt-1">© 2025 KGCC. All rights reserved. Inspired by Lone Trail.</p>
+                </div>
+            </footer>
+        </div> 
+    </main>
+
+</body>
+</html>
