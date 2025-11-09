@@ -23,5 +23,5 @@
 <hr>
 
 ### Modul 3
-![ss4](ss4.PNG)
-![ss5](ss5.PNG)
+![ss6](ss6.PNG)
+
