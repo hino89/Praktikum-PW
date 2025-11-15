@@ -2,10 +2,11 @@
 
 ### Project Website Portofolio menggunakan pure html, css, dan js
 
-### Currently 2 modul
+### Currently 4 modul
 -  **Modul 1 :** inisialisasi dan pengerjaan project local dan langsung di upload ke github via website interface.
 -  **Modul 2 :** eksperimen menggunakan git version control untuk manage project.
 -  **Modul 3 :** eksperimen menggunakan tailwindcss framework
+-  **Modul 4 :** session management, form validation, form submiting, get/post, with PHP
 
 <hr>
 
@@ -23,5 +24,10 @@
 <hr>
 
 ### Modul 3
+![ss6](ss6.PNG)
+
+<hr>
+
+### Modul 4
 ![ss6](ss6.PNG)
 
