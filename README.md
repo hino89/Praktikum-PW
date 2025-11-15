@@ -29,5 +29,5 @@
 <hr>
 
 ### Modul 4
-![ss6](ss6.PNG)
+![ss7](ss7.PNG)
 
