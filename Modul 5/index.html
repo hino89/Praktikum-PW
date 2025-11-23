@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #f0f0f0;
+            background-image: 
+                radial-gradient(#1C3E76 1px, transparent 1px),
+                radial-gradient(#1C3E76 1px, transparent 1px);
+            background-position: 0 0, 25px 25px;
+            background-size: 50px 50px;
+        }
+        .font-jp {
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+        /* Custom Scrollbar for History */
+        .history-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .history-scroll::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+        .history-scroll::-webkit-scrollbar-thumb {
+            background: #E63F45;
+        }
+        
+        /* Button Press Animation */
+        .btn-press:active {
+            transform: scale(0.95);
+        }
+
+        /* Film Strip Effect */
+        .film-strip-top {
+            background-image: linear-gradient(90deg, #333 50%, transparent 50%);
+            background-size: 20px 100%;
+            height: 8px;
+        }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 text-slate-800 overflow-x-hidden">
+
+    <!-- Main Container -->
+    <div class="relative w-full max-w-5xl flex flex-col lg:flex-row gap-6 items-start justify-center">
+        
+        <!-- Decorative Background Elements -->
+        <div class="fixed top-0 left-0 w-64 h-64 bg-[#E63F45] opacity-10 rounded-full blur-3xl -z-10"></div>
+        <div class="fixed bottom-0 right-0 w-96 h-96 bg-[#1C3E76] opacity-10 rounded-full blur-3xl -z-10"></div>
+
+        <!-- Calculator Unit -->
+        <div class="relative z-10 w-full max-w-md bg-white shadow-2xl border-4 border-[#1C3E76] relative overflow-hidden">
+            
+            <!-- Decor Header -->
+            <div class="bg-[#1C3E76] text-white p-2 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 bg-[#E63F45]"></div>
+                    <span class="font-bold tracking-widest text-sm">Calculator // SYSTEM</span>
+                </div>
+                <div class="flex gap-1">
+                    <div class="w-2 h-2 bg-white opacity-50"></div>
+                    <div class="w-2 h-2 bg-white opacity-50"></div>
+                    <div class="w-2 h-2 bg-[#E63F45]"></div>
+                </div>
+            </div>
+
+            <!-- Film Strip Decor -->
+            <div class="bg-black h-3 w-full flex justify-between px-1 py-0.5">
+                <div class="w-full h-full border-t border-dashed border-gray-500"></div>
+            </div>
+
+            <!-- Display Screen -->
+            <div class="bg-[#1a1a1a] p-6 text-right border-b-4 border-[#E63F45] relative">
+                <!-- Memory Indicator -->
+                <div id="memory-indicator" class="absolute top-2 left-4 text-[#E63F45] text-xs font-bold hidden">MEM</div>
+                
+                <!-- Previous Operation -->
+                <div id="prev-display" class="text-gray-400 text-sm h-6 font-mono overflow-hidden"></div>
+                
+                <!-- Current Input -->
+                <div id="display" class="text-white text-5xl font-bold tracking-wider overflow-hidden whitespace-nowrap">0</div>
+                
+                <!-- Decor Corner -->
+                <div class="absolute bottom-0 left-0 w-0 h-0 border-b-[20px] border-b-[#E63F45] border-r-[20px] border-r-transparent"></div>
+            </div>
+
+            <!-- Controls Area -->
+            <div class="p-4 bg-gray-100">
+                
+                <!-- Memory Functions Row -->
+                <div class="grid grid-cols-4 gap-2 mb-4">
+                    <button onclick="memoryClear()" class="btn-press bg-gray-300 text-gray-700 hover:bg-gray-400 font-bold py-2 text-sm border-b-2 border-gray-400">MC</button>
+                    <button onclick="memoryRecall()" class="btn-press bg-gray-300 text-gray-700 hover:bg-gray-400 font-bold py-2 text-sm border-b-2 border-gray-400">MR</button>
+                    <button onclick="memoryMinus()" class="btn-press bg-gray-300 text-gray-700 hover:bg-gray-400 font-bold py-2 text-sm border-b-2 border-gray-400">M-</button>
+                    <button onclick="memoryPlus()" class="btn-press bg-[#1C3E76] text-white hover:bg-[#2a559c] font-bold py-2 text-sm border-b-2 border-[#0f254a]">M+</button>
+                </div>
+
+                <!-- Main Keypad -->
+                <div class="grid grid-cols-4 gap-3">
+                    <!-- Row 1 -->
+                    <button onclick="clearEntry()" class="btn-press bg-red-100 text-[#E63F45] hover:bg-red-200 font-bold py-3 text-lg rounded-sm border-l-4 border-[#E63F45]">CE</button>
+                    <button onclick="clearAll()" class="btn-press bg-[#E63F45] text-white hover:bg-[#c42b30] font-bold py-3 text-lg shadow-md">C</button>
+                    <button onclick="setOperator('/')" class="btn-press bg-gray-200 text-[#1C3E76] hover:bg-gray-300 font-bold py-3 text-xl">÷</button>
+                    <button onclick="setOperator('*')" class="btn-press bg-gray-200 text-[#1C3E76] hover:bg-gray-300 font-bold py-3 text-xl">×</button>
+
+                    <!-- Row 2 -->
+                    <button onclick="appendNumber('7')" class="btn-press bg-white hover:bg-gray-50 font-bold py-3 text-xl shadow-sm border border-gray-200">7</button>
+                    <button onclick="appendNumber('8')" class="btn-press bg-white hover:bg-gray-50 font-bold py-3 text-xl shadow-sm border border-gray-200">8</button>
+                    <button onclick="appendNumber('9')" class="btn-press bg-white hover:bg-gray-50 font-bold py-3 text-xl shadow-sm border border-gray-200">9</button>
+                    <button onclick="setOperator('-')" class="btn-press bg-gray-200 text-[#1C3E76] hover:bg-gray-300 font-bold py-3 text-xl">−</button>
+
+                    <!-- Row 3 -->
+                    <button onclick="appendNumber('4')" class="btn-press bg-white hover:bg-gray-50 font-bold py-3 text-xl shadow-sm border border-gray-200">4</button>
+                    <button onclick="appendNumber('5')" class="btn-press bg-white hover:bg-gray-50 font-bold py-3 text-xl shadow-sm border border-gray-200">5</button>
+                    <button onclick="appendNumber('6')" class="btn-press bg-white hover:bg-gray-50 font-bold py-3 text-xl shadow-sm border border-gray-200">6</button>
+                    <button onclick="setOperator('+')" class="btn-press bg-gray-200 text-[#1C3E76] hover:bg-gray-300 font-bold py-3 text-xl">+</button>
+
+                    <!-- Row 4 -->
+                    <button onclick="appendNumber('1')" class="btn-press bg-white hover:bg-gray-50 font-bold py-3 text-xl shadow-sm border border-gray-200">1</button>
+                    <button onclick="appendNumber('2')" class="btn-press bg-white hover:bg-gray-50 font-bold py-3 text-xl shadow-sm border border-gray-200">2</button>
+                    <button onclick="appendNumber('3')" class="btn-press bg-white hover:bg-gray-50 font-bold py-3 text-xl shadow-sm border border-gray-200">3</button>
+                    <button onclick="calculate()" class="btn-press row-span-2 bg-[#1C3E76] text-white hover:bg-[#2a559c] font-bold py-3 text-2xl flex items-center justify-center border-b-4 border-[#0f254a] shadow-lg">=
+                        <span class="absolute bottom-1 right-1 text-[10px] opacity-50">EXEC</span>
+                    </button>
+
+                    <!-- Row 5 -->
+                    <button onclick="appendNumber('0')" class="btn-press col-span-2 bg-white hover:bg-gray-50 font-bold py-3 text-xl shadow-sm border border-gray-200 flex items-center justify-center relative">
+                        0
+                        <div class="absolute left-0 top-0 h-full w-1 bg-[#E63F45]"></div>
+                    </button>
+                    <button onclick="appendDecimal()" class="btn-press bg-white hover:bg-gray-50 font-bold py-3 text-xl shadow-sm border border-gray-200">.</button>
+                </div>
+            </div>
+
+            <!-- Footer Decor -->
+            <div class="bg-[#E63F45] text-white text-[10px] p-1 text-center font-jp tracking-widest">
+                SUPPORT TERMINAL // V.2.1
+            </div>
+        </div>
+
+        <!-- History Panel -->
+        <div class="w-full lg:w-72 glass-panel p-1 flex flex-col h-[540px] border-l-4 border-[#E63F45] relative mt-4 lg:mt-0 shadow-xl">
+             <div class="bg-black text-white p-2 mb-2 flex justify-between items-center">
+                <span class="font-bold tracking-widest">LOGS // HISTORY</span>
+                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+            </div>
+            
+            <div id="history-list" class="flex-1 overflow-y-auto history-scroll p-2 space-y-2 font-mono text-sm">
+                <!-- History items will appear here -->
+                <div class="text-gray-400 text-xs text-center mt-4 opacity-50">
+                    NO DATA RECORDED<br>
+                    WAITING FOR INPUT...
+                </div>
+            </div>
+
+            <!-- Decorative Card element at bottom -->
+            <!-- <div class="mt-auto bg-white p-3 border border-gray-200 relative overflow-hidden group">
+                 <div class="absolute top-0 right-0 bg-[#E63F45] text-white text-[9px] px-2 py-0.5 font-bold z-10">PROMO</div>
+                 <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-[#1C3E76] rounded flex items-center justify-center text-white font-bold text-lg">
+                        H
+                    </div>
+                    <div>
+                        <div class="text-[#E63F45] font-bold text-sm leading-tight">HIGASHI</div>
+                        <div class="text-gray-500 text-[10px]">Arknights Theme</div>
+                    </div>
+                 </div>
+                 <div class="absolute -bottom-4 -right-4 w-12 h-12 bg-gray-100 transform rotate-45 z-0"></div>
+            </div> -->
+        </div>
+    </div>
+
+    <script>
+        // --- Variables ---
+        let currentInput = '0';
+        let previousInput = '';
+        let operator = null;
+        let shouldResetScreen = false;
+        let memory = 0;
+        let history = [];
+        let isErrorState = false;
+
+        const displayElement = document.getElementById('display');
+        const prevDisplayElement = document.getElementById('prev-display');
+        const historyListElement = document.getElementById('history-list');
+        const memoryIndicator = document.getElementById('memory-indicator');
+
+        // --- Core Functions ---
+
+        function updateDisplay() {
+            // Format Logic for Display
+            let displayString = currentInput;
+
+            // Handle Scientific Notation if too long or explicitly required
+            if (displayString.length > 10 && !displayString.startsWith("ERR")) {
+                let num = parseFloat(displayString);
+                if (!isNaN(num)) {
+                    displayString = num.toExponential(5); // e.g., 1.23456e+8
+                }
+            }
+
+            displayElement.innerText = displayString;
+            
+            let operationString = '';
+            if (operator != null) {
+                // Also format previous input in top bar if too long
+                let displayPrev = previousInput;
+                if (displayPrev.length > 12) {
+                   displayPrev = parseFloat(displayPrev).toExponential(2);
+                }
+                operationString = `${displayPrev} ${operator}`;
+            }
+            prevDisplayElement.innerText = operationString;
+        }
+
+        function appendNumber(number) {
+            if (isErrorState) {
+                clearAll(); // Reset if typing after error
+            }
+            
+            if (currentInput === '0' || shouldResetScreen) {
+                currentInput = number;
+                shouldResetScreen = false;
+            } else {
+                if (currentInput.length < 15) { // Soft limit before exponential takes over
+                    currentInput += number;
+                }
+            }
+            updateDisplay();
+        }
+
+        function appendDecimal() {
+            if (isErrorState) clearAll();
+
+            if (shouldResetScreen) {
+                currentInput = '0';
+                shouldResetScreen = false;
+            }
+            if (!currentInput.includes('.')) {
+                currentInput += '.';
+            }
+            updateDisplay();
+        }
+
+        function setOperator(op) {
+            if (isErrorState) return;
+
+            if (operator !== null && !shouldResetScreen) {
+                calculate(); // Chained calculation
+            }
+            previousInput = currentInput;
+            operator = op;
+            shouldResetScreen = true;
+            updateDisplay();
+        }
+
+        function calculate() {
+            if (operator === null || shouldResetScreen) return;
+            if (isErrorState) return;
+
+            const prev = parseFloat(previousInput);
+            const current = parseFloat(currentInput);
+            
+            if (isNaN(prev) || isNaN(current)) return;
+
+            let result;
+            let symbol = operator;
+
+            switch (operator) {
+                case '+':
+                    result = prev + current;
+                    break;
+                case '-':
+                    result = prev - current;
+                    break;
+                case '*':
+                    result = prev * current;
+                    symbol = '×';
+                    break;
+                case '/':
+                    if (current === 0) {
+                        currentInput = "ERR: DIV/0";
+                        isErrorState = true;
+                        operator = null;
+                        previousInput = '';
+                        updateDisplay();
+                        addToHistory(`${prev} ${symbol} ${current}`, "ERROR");
+                        return;
+                    }
+                    result = prev / current;
+                    symbol = '÷';
+                    break;
+                default:
+                    return;
+            }
+
+            // Logic for formatting and overflow
+            // 1. Handle floating point errors
+            result = parseFloat(result.toPrecision(12)); 
+
+            // 2. If result is huge (infinite)
+            if (!isFinite(result)) {
+                 currentInput = "ERR: OVERFLOW";
+                 isErrorState = true;
+            } else {
+                 currentInput = result.toString();
+            }
+            
+            addToHistory(`${prev} ${symbol} ${current}`, isErrorState ? "ERROR" : result);
+
+            operator = null;
+            previousInput = ''; 
+            shouldResetScreen = true;
+            updateDisplay();
+        }
+
+        function clearEntry() {
+            if (isErrorState) {
+                clearAll();
+            } else {
+                currentInput = '0';
+                updateDisplay();
+            }
+        }
+
+        function clearAll() {
+            currentInput = '0';
+            previousInput = '';
+            operator = null;
+            shouldResetScreen = false;
+            isErrorState = false;
+            updateDisplay();
+        }
+
+        // --- Memory Functions ---
+
+        function memoryPlus() {
+            if (isErrorState) return;
+            memory += parseFloat(currentInput);
+            blinkDisplay();
+            checkMemory();
+        }
+
+        function memoryMinus() {
+            if (isErrorState) return;
+            memory -= parseFloat(currentInput);
+            blinkDisplay();
+            checkMemory();
+        }
+
+        function memoryRecall() {
+            if (isErrorState) clearAll();
+            currentInput = memory.toString();
+            shouldResetScreen = true;
+            updateDisplay();
+        }
+
+        function memoryClear() {
+            memory = 0;
+            checkMemory();
+            blinkDisplay();
+        }
+
+        function checkMemory() {
+            if(memory !== 0) {
+                memoryIndicator.classList.remove('hidden');
+            } else {
+                memoryIndicator.classList.add('hidden');
+            }
+        }
+
+        function blinkDisplay() {
+            displayElement.style.opacity = '0.5';
+            setTimeout(() => displayElement.style.opacity = '1', 100);
+        }
+
+        // --- History Functions ---
+
+        function addToHistory(expression, result) {
+            // Handle Scientific Notation in History display as well if needed
+            let displayResult = result;
+            if (typeof result === 'number' && (result.toString().length > 10)) {
+                 displayResult = result.toExponential(4);
+            }
+
+            const historyItem = { expression, result, displayResult };
+            history.unshift(historyItem); 
+            
+            if (history.length > 5) {
+                history.pop(); 
+            }
+            renderHistory();
+        }
+
+        function renderHistory() {
+            historyListElement.innerHTML = '';
+            
+            history.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'bg-gray-100 p-2 border-l-2 border-[#1C3E76] mb-2 hover:bg-gray-200 transition cursor-pointer font-mono';
+                
+                // Only allow clicking if result was not an error
+                if (item.result !== "ERROR") {
+                    div.onclick = () => {
+                        currentInput = item.result.toString();
+                        shouldResetScreen = true;
+                        updateDisplay();
+                    };
+                } else {
+                    div.className += ' opacity-50 cursor-not-allowed';
+                }
+
+                div.innerHTML = `
+                    <div class="text-xs text-gray-500 text-right">#0${index + 1}</div>
+                    <div class="text-gray-600 text-xs">${item.expression} =</div>
+                    <div class="text-[#E63F45] font-bold text-lg text-right">${item.displayResult}</div>
+                `;
+                historyListElement.appendChild(div);
+            });
+        }
+
+        // --- Keyboard Support ---
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key >= '0' && e.key <= '9') appendNumber(e.key);
+            if (e.key === '.') appendDecimal();
+            if (e.key === '=' || e.key === 'Enter') {
+                e.preventDefault();
+                calculate();
+            }
+            if (e.key === 'Backspace') {
+                 if (isErrorState) {
+                     clearAll();
+                     return;
+                 }
+                 if(currentInput.length > 1) {
+                     currentInput = currentInput.slice(0, -1);
+                 } else {
+                     currentInput = '0';
+                 }
+                 updateDisplay();
+            }
+            if (e.key === 'Escape') clearAll();
+            if (e.key === 'Delete') clearEntry(); // Added Delete key for CE
+            if (e.key === '+') setOperator('+');
+            if (e.key === '-') setOperator('-');
+            if (e.key === '*') setOperator('*');
+            if (e.key === '/') {
+                e.preventDefault(); 
+                setOperator('/');
+            }
+        });
+
+    </script>
+</body>
+</html>

@@ -7,6 +7,8 @@
 -  **Modul 2 :** eksperimen menggunakan git version control untuk manage project.
 -  **Modul 3 :** eksperimen menggunakan tailwindcss framework
 -  **Modul 4 :** session management, form validation, form submiting, get/post, with PHP
+-  **Modul 5 :** calculator using js, with proper logic and mem functions
+
 
 <hr>
 
@@ -31,3 +33,7 @@
 ### Modul 4
 ![ss7](ss7.PNG)
 
+<hr>
+
+### Modul 5
+![ss8](ss8.PNG)
