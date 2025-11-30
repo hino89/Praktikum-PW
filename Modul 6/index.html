@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Command Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        ark: {
+                            red: '#E63F45',
+                            blue: '#1C3E76',
+                            dark: '#0f172a',
+                            paper: '#f0f0f0'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Rajdhani', 'sans-serif'],
+                        jp: ['Noto Sans JP', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom UI Elements based on Arknights */
+        body {
+            background-image: 
+                linear-gradient(rgba(28, 62, 118, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(28, 62, 118, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .clip-t-r {
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 95% 100%, 0 100%);
+        }
+
+        .clip-b-l {
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 5% 100%, 0 85%);
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+        }
+        
+        .dark .glass-panel {
+            background: rgba(15, 23, 42, 0.9);
+            border-color: rgba(255,255,255,0.1);
+        }
+
+        .loading-line {
+            position: relative;
+            overflow: hidden;
+        }
+        .loading-line::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, transparent, rgba(230, 63, 69, 0.4), transparent);
+            transform: translateX(-100%);
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            100% { transform: translateX(100%); }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #E63F45; }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 dark:text-slate-100 transition-colors duration-300">
+
+    <!-- Decorative Background -->
+    <div class="fixed top-0 right-0 w-96 h-96 bg-ark-blue opacity-5 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+    <div class="fixed bottom-0 left-0 w-96 h-96 bg-ark-red opacity-5 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+
+    <!-- Main Container -->
+    <div class="max-w-6xl mx-auto p-4 md:p-8">
+        
+        <!-- Header Section -->
+        <header class="flex flex-col md:flex-row justify-between items-end md:items-center mb-8 border-b-2 border-ark-blue pb-4">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-ark-red text-white flex items-center justify-center font-bold text-2xl shadow-lg">W</div>
+                <div>
+                    <h1 class="text-3xl font-bold tracking-wider text-ark-blue dark:text-white">HIGASHI <span class="text-ark-red">WEATHER</span></h1>
+                    <p class="text-xs font-mono tracking-widest text-gray-500">ATMOSPHERIC MONITORING SYSTEM // V.3.1</p>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex items-center gap-4 mt-4 md:mt-0">
+                <div class="flex bg-gray-200 dark:bg-slate-800 p-1 rounded">
+                    <button id="btn-c" class="px-3 py-1 text-sm font-bold bg-white dark:bg-slate-600 shadow transition-all rounded-sm">°C</button>
+                    <button id="btn-f" class="px-3 py-1 text-sm font-bold text-gray-500 hover:text-ark-red transition-all">°F</button>
+                </div>
+                <button onclick="toggleTheme()" class="p-2 border border-ark-blue text-ark-blue dark:text-white dark:border-white hover:bg-ark-blue hover:text-white transition">
+                    <i data-lucide="moon" class="w-5 h-5"></i>
+                </button>
+                <button onclick="manualRefresh()" id="refresh-btn" class="flex items-center gap-2 bg-ark-red text-white px-4 py-2 font-bold hover:bg-red-700 transition shadow-lg group">
+                    <i data-lucide="refresh-cw" class="w-4 h-4 group-hover:animate-spin"></i>
+                    SYNC
+                </button>
+            </div>
+        </header>
+
+        <!-- Search & Suggestions -->
+        <div class="relative mb-8 z-50">
+            <div class="flex gap-2">
+                <div class="relative flex-1">
+                    <input type="text" id="city-search" placeholder="ENTER SECTOR COORDINATES (CITY NAME)..." 
+                           class="w-full bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 p-4 pl-12 font-mono focus:border-ark-red focus:outline-none shadow-sm transition-colors text-lg uppercase"
+                           autocomplete="off">
+                    <i data-lucide="search" class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <!-- Autocomplete Dropdown -->
+                    <div id="search-suggestions" class="absolute top-full left-0 w-full bg-white dark:bg-slate-900 border border-t-0 border-ark-blue shadow-xl hidden">
+                        <!-- Suggestions injected here -->
+                    </div>
+                </div>
+                <button onclick="handleSearch()" class="bg-ark-blue text-white px-8 font-bold text-xl hover:bg-blue-900 transition clip-t-r">
+                    SCAN
+                </button>
+            </div>
+            
+            <!-- Favorites List -->
+            <div class="mt-3 flex flex-wrap gap-2 items-center" id="favorites-container">
+                <span class="text-xs font-bold text-gray-400 mr-2">PRIORITY SECTORS:</span>
+                <!-- Chips injected here -->
+            </div>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div id="dashboard-content" class="grid grid-cols-1 lg:grid-cols-3 gap-6 opacity-0 transition-opacity duration-500">
+            
+            <!-- Current Weather Card (Left, Large) -->
+            <div class="lg:col-span-1">
+                <div class="glass-panel border-l-4 border-ark-red p-6 h-full relative shadow-lg bg-white dark:bg-slate-800">
+                    <div class="absolute top-2 right-2 flex gap-1">
+                        <div class="w-2 h-2 bg-ark-red animate-pulse"></div>
+                        <div class="w-2 h-2 bg-ark-blue"></div>
+                    </div>
+
+                    <h2 id="current-city" class="text-4xl font-bold mb-1 break-words">TOKYO</h2>
+                    <p id="current-date" class="text-sm font-mono text-gray-500 mb-6">2023-11-23 14:00</p>
+
+                    <div class="flex flex-col items-center py-8 border-y border-dashed border-gray-300 dark:border-gray-700">
+                        <i id="current-icon" data-lucide="cloud-sun" class="w-24 h-24 text-ark-blue dark:text-white mb-4"></i>
+                        <div class="text-6xl font-bold tracking-tighter" id="current-temp">24°</div>
+                        <div class="text-xl font-jp font-bold text-ark-red mt-2" id="current-desc">Clear Sky</div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mt-6">
+                        <div class="bg-gray-100 dark:bg-slate-700 p-3 text-center">
+                            <div class="text-xs text-gray-500">HUMIDITY</div>
+                            <div class="font-bold text-lg" id="current-humidity">45%</div>
+                        </div>
+                        <div class="bg-gray-100 dark:bg-slate-700 p-3 text-center">
+                            <div class="text-xs text-gray-500">WIND SPD</div>
+                            <div class="font-bold text-lg" id="current-wind">12 km/h</div>
+                        </div>
+                    </div>
+                    
+                    <button onclick="saveFavorite()" class="w-full mt-4 border border-ark-blue text-ark-blue dark:text-white dark:border-white py-2 hover:bg-ark-blue hover:text-white transition text-sm font-bold flex justify-center items-center gap-2">
+                        <i data-lucide="bookmark" class="w-4 h-4"></i> SAVE SECTOR
+                    </button>
+                </div>
+            </div>
+
+            <!-- 5-Day Forecast (Right, Grid) -->
+            <div class="lg:col-span-2 flex flex-col gap-4">
+                <div class="flex justify-between items-center bg-ark-blue text-white p-2 px-4 clip-b-l">
+                    <span class="font-bold tracking-widest">TACTICAL FORECAST // 5-DAY</span>
+                    <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
+                </div>
+
+                <div id="forecast-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 h-full">
+                    <!-- Forecast Cards will be injected here -->
+                    <!-- SKELETON LOADER EXAMPLE -->
+                    <div class="bg-white dark:bg-slate-800 p-4 border-t-4 border-gray-300 flex flex-col items-center justify-center h-40 animate-pulse">
+                        <div class="w-12 h-12 bg-gray-200 rounded-full mb-2"></div>
+                        <div class="w-16 h-4 bg-gray-200 mb-1"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="fixed inset-0 bg-white/80 dark:bg-slate-900/80 z-40 flex flex-col items-center justify-center hidden backdrop-blur-sm">
+            <div class="w-64 h-2 bg-gray-200 overflow-hidden relative border border-ark-red">
+                <div class="absolute inset-0 bg-ark-red loading-line"></div>
+            </div>
+            <div class="mt-4 font-mono font-bold text-ark-blue dark:text-white blink">ESTABLISHING CONNECTION...</div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-12 border-t border-gray-300 dark:border-gray-700 pt-4 flex justify-between items-center text-xs text-gray-500 font-mono">
+            <div>
+                STATUS: <span class="text-green-500 font-bold">ONLINE</span> | DATA: OPEN-METEO
+            </div>
+            <div id="last-updated">UPDATED: --:--</div>
+        </footer>
+
+    </div>
+
+    <script>
+        // --- Configuration & State ---
+        const CONFIG = {
+            geoApi: 'https://geocoding-api.open-meteo.com/v1/search',
+            weatherApi: 'https://api.open-meteo.com/v1/forecast',
+            refreshInterval: 300000 // 5 minutes
+        };
+
+        let state = {
+            currentCity: { name: 'Jakarta', lat: -6.2088, lon: 106.8456, country: 'ID' },
+            unit: 'c', // 'c' or 'f'
+            favorites: JSON.parse(localStorage.getItem('weather_favs')) || []
+        };
+
+        let autoRefreshTimer = null;
+
+        // --- DOM Elements ---
+        const els = {
+            search: document.getElementById('city-search'),
+            suggestions: document.getElementById('search-suggestions'),
+            loading: document.getElementById('loading-overlay'),
+            dashboard: document.getElementById('dashboard-content'),
+            forecastGrid: document.getElementById('forecast-grid'),
+            favorites: document.getElementById('favorites-container'),
+            
+            // Current Weather Elements
+            cityName: document.getElementById('current-city'),
+            date: document.getElementById('current-date'),
+            temp: document.getElementById('current-temp'),
+            desc: document.getElementById('current-desc'),
+            humid: document.getElementById('current-humidity'),
+            wind: document.getElementById('current-wind'),
+            icon: document.getElementById('current-icon'),
+            
+            lastUpdate: document.getElementById('last-updated')
+        };
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            renderFavorites();
+            fetchWeatherData(); // Initial Load
+            startAutoRefresh();
+            
+            // Search Input Listener for Autocomplete
+            let timeout = null;
+            els.search.addEventListener('input', (e) => {
+                clearTimeout(timeout);
+                if(e.target.value.length > 2) {
+                    timeout = setTimeout(() => fetchCitySuggestions(e.target.value), 500);
+                } else {
+                    els.suggestions.classList.add('hidden');
+                }
+            });
+
+            // Theme Check
+            if (localStorage.getItem('theme') === 'dark' || 
+               (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+        });
+
+        // --- Core Logic (AJAX / Web Service) ---
+
+        // 1. Geocoding API (City Name -> Lat/Lon)
+        async function fetchCitySuggestions(query) {
+            try {
+                const res = await fetch(`${CONFIG.geoApi}?name=${query}&count=5&language=en&format=json`);
+                const data = await res.json();
+                
+                if (!data.results) {
+                    els.suggestions.classList.add('hidden');
+                    return;
+                }
+
+                renderSuggestions(data.results);
+            } catch (error) {
+                console.error("Geocoding Error:", error);
+            }
+        }
+
+        // 2. Weather API (Lat/Lon -> Weather Data)
+        async function fetchWeatherData() {
+            showLoading(true);
+            try {
+                const { lat, lon } = state.currentCity;
+                
+                // Fetching Current Weather AND Daily Forecast in one go
+                const url = `${CONFIG.weatherApi}?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`;
+                
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Weather Service Unreachable');
+                
+                const data = await res.json();
+                updateUI(data);
+                
+                els.lastUpdate.innerText = `UPDATED: ${new Date().toLocaleTimeString()}`;
+            } catch (error) {
+                alert("COMMUNICATION ERROR: " + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function handleSearch() {
+            const query = els.search.value;
+            if(!query) return;
+            // Select first result automatically if manual search pressed
+            fetch(`${CONFIG.geoApi}?name=${query}&count=1&language=en&format=json`)
+                .then(r => r.json())
+                .then(d => {
+                    if(d.results && d.results.length > 0) {
+                        selectCity(d.results[0]);
+                    } else {
+                        alert("TARGET NOT FOUND");
+                    }
+                });
+        }
+
+        function selectCity(cityData) {
+            state.currentCity = {
+                name: cityData.name,
+                lat: cityData.latitude,
+                lon: cityData.longitude,
+                country: cityData.country_code
+            };
+            els.search.value = '';
+            els.suggestions.classList.add('hidden');
+            fetchWeatherData();
+        }
+
+        // --- UI Rendering ---
+
+        function renderSuggestions(cities) {
+            els.suggestions.innerHTML = '';
+            cities.forEach(city => {
+                const div = document.createElement('div');
+                div.className = 'p-3 hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer border-b border-gray-100 dark:border-gray-800 flex justify-between items-center';
+                div.innerHTML = `
+                    <span class="font-bold text-ark-blue dark:text-white">${city.name}</span>
+                    <span class="text-xs text-gray-400 font-mono">${city.country || 'N/A'} // ${city.admin1 || ''}</span>
+                `;
+                div.onclick = () => selectCity(city);
+                els.suggestions.appendChild(div);
+            });
+            els.suggestions.classList.remove('hidden');
+        }
+
+        function updateUI(data) {
+            // Fade in effect
+            els.dashboard.classList.remove('opacity-0');
+
+            // 1. Update Current Weather
+            const current = data.current;
+            els.cityName.innerText = state.currentCity.name.toUpperCase();
+            els.date.innerText = new Date().toLocaleString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            
+            // Unit Conversion
+            const temp = formatTemp(current.temperature_2m);
+            const wind = current.wind_speed_10m; // Default km/h from OpenMeteo
+            
+            els.temp.innerText = temp;
+            els.humid.innerText = `${current.relative_humidity_2m}%`;
+            els.wind.innerText = `${wind} km/h`;
+            
+            const wInfo = getWeatherInfo(current.weather_code);
+            els.desc.innerText = wInfo.desc;
+            
+            // Update Icon (Re-injecting SVG)
+            els.icon.setAttribute('data-lucide', wInfo.icon);
+            lucide.createIcons();
+
+            // 2. Update Forecast Grid
+            const daily = data.daily;
+            els.forecastGrid.innerHTML = '';
+            
+            // Loop 5 days (skipping today usually, or showing next 5)
+            for(let i = 1; i <= 5; i++) {
+                if(!daily.time[i]) break;
+
+                const dayCode = daily.weather_code[i];
+                const dayMin = formatTemp(daily.temperature_2m_min[i]);
+                const dayMax = formatTemp(daily.temperature_2m_max[i]);
+                const dayDate = new Date(daily.time[i]).toLocaleDateString('en-US', { weekday: 'short' });
+                const dayInfo = getWeatherInfo(dayCode);
+
+                const card = document.createElement('div');
+                card.className = 'bg-white dark:bg-slate-800 p-4 border-t-4 border-gray-300 dark:border-slate-600 hover:border-ark-red transition-colors flex flex-col items-center justify-between shadow-sm group';
+                
+                card.innerHTML = `
+                    <span class="text-gray-400 font-mono text-xs mb-2">${dayDate}</span>
+                    <i data-lucide="${dayInfo.icon}" class="w-8 h-8 text-ark-blue dark:text-gray-300 group-hover:text-ark-red transition mb-2"></i>
+                    <div class="text-center">
+                        <span class="font-bold block text-lg">${dayMax}</span>
+                        <span class="text-xs text-gray-500">${dayMin}</span>
+                    </div>
+                `;
+                els.forecastGrid.appendChild(card);
+            }
+            lucide.createIcons();
+        }
+
+        // --- Helper Functions ---
+
+        // WMO Weather Code Interpreter
+        function getWeatherInfo(code) {
+            // Mapping WMO codes to Descriptions and Lucide Icons
+            if (code === 0) return { desc: 'CLEAR SKY', icon: 'sun' };
+            if (code >= 1 && code <= 3) return { desc: 'PARTLY CLOUDY', icon: 'cloud-sun' };
+            if (code >= 45 && code <= 48) return { desc: 'FOGGY', icon: 'cloud-fog' };
+            if (code >= 51 && code <= 55) return { desc: 'DRIZZLE', icon: 'cloud-drizzle' };
+            if (code >= 61 && code <= 67) return { desc: 'RAIN', icon: 'cloud-rain' };
+            if (code >= 71 && code <= 77) return { desc: 'SNOW', icon: 'snowflake' };
+            if (code >= 80 && code <= 82) return { desc: 'HEAVY RAIN', icon: 'cloud-lightning' };
+            if (code >= 95) return { desc: 'THUNDERSTORM', icon: 'zap' };
+            return { desc: 'UNKNOWN', icon: 'help-circle' };
+        }
+
+        function formatTemp(celsius) {
+            if (state.unit === 'f') {
+                return Math.round((celsius * 9/5) + 32) + '°F';
+            }
+            return Math.round(celsius) + '°C';
+        }
+
+        function toggleUnit() {
+            state.unit = state.unit === 'c' ? 'f' : 'c';
+            
+            // Update buttons visual
+            document.getElementById('btn-c').className = state.unit === 'c' ? 
+                'px-3 py-1 text-sm font-bold bg-white dark:bg-slate-600 shadow transition-all rounded-sm' : 
+                'px-3 py-1 text-sm font-bold text-gray-500 hover:text-ark-red transition-all';
+            
+            document.getElementById('btn-f').className = state.unit === 'f' ? 
+                'px-3 py-1 text-sm font-bold bg-white dark:bg-slate-600 shadow transition-all rounded-sm' : 
+                'px-3 py-1 text-sm font-bold text-gray-500 hover:text-ark-red transition-all';
+
+            // Refresh data display without re-fetching API
+            fetchWeatherData(); 
+        }
+
+        // Wiring buttons manually since they are inside header
+        document.getElementById('btn-c').onclick = () => { if(state.unit !== 'c') toggleUnit() };
+        document.getElementById('btn-f').onclick = () => { if(state.unit !== 'f') toggleUnit() };
+
+
+        // --- Features: Theme, Favorites, Refresh ---
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        function saveFavorite() {
+            // Check duplicate
+            if (state.favorites.some(city => city.name === state.currentCity.name)) return;
+            
+            state.favorites.push(state.currentCity);
+            localStorage.setItem('weather_favs', JSON.stringify(state.favorites));
+            renderFavorites();
+        }
+
+        function removeFavorite(cityName) {
+            state.favorites = state.favorites.filter(c => c.name !== cityName);
+            localStorage.setItem('weather_favs', JSON.stringify(state.favorites));
+            renderFavorites();
+        }
+
+        function renderFavorites() {
+            els.favorites.innerHTML = '<span class="text-xs font-bold text-gray-400 mr-2">PRIORITY SECTORS:</span>';
+            state.favorites.forEach(city => {
+                const chip = document.createElement('div');
+                chip.className = 'bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-500 px-3 py-1 text-xs font-bold cursor-pointer hover:border-ark-red hover:text-ark-red transition flex items-center gap-2 group';
+                chip.innerHTML = `
+                    <span onclick="selectCity({name:'${city.name}', latitude:${city.lat}, longitude:${city.lon}})">${city.name}</span>
+                    <i data-lucide="x" class="w-3 h-3 text-gray-400 hover:text-red-500" onclick="event.stopPropagation(); removeFavorite('${city.name}')"></i>
+                `;
+                els.favorites.appendChild(chip);
+            });
+            lucide.createIcons();
+        }
+
+        function showLoading(show) {
+            if(show) els.loading.classList.remove('hidden');
+            else els.loading.classList.add('hidden');
+        }
+
+        function manualRefresh() {
+            fetchWeatherData();
+        }
+
+        function startAutoRefresh() {
+            if(autoRefreshTimer) clearInterval(autoRefreshTimer);
+            autoRefreshTimer = setInterval(() => {
+                console.log("Auto-syncing weather data...");
+                fetchWeatherData();
+            }, CONFIG.refreshInterval);
+        }
+
+    </script>
+</body>
+</html>

@@ -37,3 +37,6 @@
 
 ### Modul 5
 ![ss8](ss8.PNG)
+
+### Modul 6
+![ss9](ss9.PNG)
